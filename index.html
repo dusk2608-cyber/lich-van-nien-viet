@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F9F4E8" />
+  <meta name="description" content="Vận Ký - Ứng dụng Lịch Vạn Niên Việt Nam (Âm - Dương lịch), Giờ Hoàng Đạo, Phong Thủy & Thời Tiết Thực Tế chuẩn Á Đông." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Lịch Vạn Niên" />
+
+  <title>Vận Ký — Lịch Vạn Niên Việt Nam & Thời Tiết</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="./assets/icon-512.png" />
+
+  <!-- Google Fonts hỗ trợ đầy đủ dấu tiếng Việt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <!-- Lớp tranh thủy mặc & giấy dó nền -->
+  <div class="paper-backdrop" aria-hidden="true">
+    <div class="paper-painting"></div>
+    <div class="paper-grain"></div>
+  </div>
+
+  <div class="app-shell">
+    <!-- Thanh đầu trang: Triện đỏ + Nút Hôm nay + Tuổi gia chủ -->
+    <header class="top-bar">
+      <div class="brand">
+        <div class="seal-stamp" aria-hidden="true">
+          <span>Vận</span>
+          <span>Ký</span>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Vận Ký</h1>
+          <span class="brand-sub">Lịch Việt</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="btnToday" class="pill-action" type="button" title="Quay về ngày hôm nay">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>Hôm nay</span>
+        </button>
+
+        <button id="btnConverterDesktop" class="pill-action pill-desktop-only" type="button" title="Đổi ngày Âm - Dương lịch">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M16 3h5v5M4 20 21 3M21 16v5h-5"/>
+          </svg>
+          <span>Đổi ngày</span>
+        </button>
+
+        <button id="btnBirthYear" class="pill-action pill-age" type="button" title="Cài đặt năm sinh gia chủ">
+          <span class="age-dot" aria-hidden="true"></span>
+          <span id="birthYearBadge">Tuổi: Chọn</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Widget Thời Tiết Trực Tiếp gọn gàng -->
+    <section id="weatherWidget" class="weather-strip" aria-label="Thời tiết thực tế tại vị trí hiện tại">
+      <button id="btnOpenWeather" class="weather-strip-main" type="button">
+        <div id="weatherIconWrap" class="weather-icon-wrap" aria-hidden="true"></div>
+        <div class="weather-info-main">
+          <div class="weather-loc-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <span id="weatherLocation" class="weather-location">Đang định vị GPS...</span>
+          </div>
+          <div class="weather-meta-row">
+            <span id="weatherCondition">Đang tải thời tiết</span>
+            <span class="sep">·</span>
+            <span id="weatherRange">--° / --°</span>
+          </div>
+        </div>
+        <div class="weather-temp-col">
+          <span id="weatherTemp" class="weather-temp">--°C</span>
+          <div class="weather-sub-stats">
+            <span id="weatherHumidity" title="Độ ẩm">💧 --%</span>
+            <span id="weatherWind" title="Tốc độ gió">💨 -- km/h</span>
+          </div>
+        </div>
+      </button>
+      <button id="btnRefreshGps" class="weather-gps-btn" type="button" title="Cập nhật vị trí GPS & thời tiết">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          <circle cx="12" cy="12" r="7"/>
+        </svg>
+      </button>
+    </section>
+
+    <main class="main-layout">
+      <!-- Cột trái / Phần chính: Tiêu điểm Ngày + Lịch Tháng + Ca Dao -->
+      <div class="primary-column">
+        <!-- Khu vực Tiêu điểm Ngày (Hero Section) -->
+        <section class="hero-section" aria-label="Tiêu điểm ngày đã chọn">
+          <div class="hero-ring-row">
+            <button id="btnPrevDay" class="nav-circle-btn" type="button" aria-label="Ngày hôm trước">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+
+            <div class="hero-circle-wrap" id="heroCircleTrigger" role="button" tabindex="0" title="Nhấn để xem chi tiết giờ đẹp & phong thủy ngày">
+              <!-- Vòng tròn cọ vẽ mực đỏ SVG -->
+              <svg class="hero-brush-svg" viewBox="0 0 280 280" fill="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="redInkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#D92D20"/>
+                    <stop offset="50%" stop-color="#B91C1C"/>
+                    <stop offset="100%" stop-color="#7F1D1D"/>
+                  </linearGradient>
+                  <clipPath id="heroCircleClip">
+                    <circle cx="140" cy="140" r="123"/>
+                  </clipPath>
+                </defs>
+                <!-- Nền tròn giấy kem ấm nhẹ -->
+                <circle cx="140" cy="140" r="124" fill="#FCF8EE" fill-opacity="0.92"/>
+                <!-- Vệt cọ mực đỏ phía trên chứa Thứ -->
+                <path d="M20 62 C70 18, 210 18, 260 62 L245 78 C195 54, 85 54, 35 78 Z" fill="url(#redInkGrad)" clip-path="url(#heroCircleClip)"/>
+                <!-- Vòng cọ mực đỏ bên ngoài -->
+                <circle cx="140" cy="140" r="126" stroke="url(#redInkGrad)" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="620 12 130 8"/>
+                <circle cx="140" cy="140" r="131" stroke="#B91C1C" stroke-opacity="0.38" stroke-width="2" stroke-dasharray="180 18 240 20 90 14"/>
+                <!-- Họa tiết mây lành vàng cổ hai bên -->
+                <g stroke="#C68B2C" stroke-width="1.6" fill="#FDE68A" fill-opacity="0.28" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M28 158c-6 0-10-4-10-9 0-4 3-7 7-8 1-5 6-8 11-7 4 1 7 4 8 8 4 0 8 3 8 8s-4 8-9 8H28z"/>
+                  <path d="M225 170c-6 0-11-4-11-9.5 0-4.2 3.2-7.5 7.5-8.2 1.5-5.2 6.8-8.3 12.2-7.1 4.2 1 7.2 4.3 8 8.3 4.5.4 8 3.8 8 8.5 0 4.8-4 8-9.2 8H225z"/>
+                </g>
+              </svg>
+
+              <div class="hero-circle-content">
+                <div id="heroWeekday" class="hero-weekday">Thứ Năm</div>
+                <div id="heroDay" class="hero-day">19</div>
+                <div id="heroMonthYear" class="hero-month-year">Tháng 11 năm 2026</div>
+              </div>
+            </div>
+
+            <button id="btnNextDay" class="nav-circle-btn" type="button" aria-label="Ngày hôm sau">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Cuộn thư (Scroll Banner) ghi Âm lịch & Can Chi -->
+          <div class="scroll-banner-wrap">
+            <div class="scroll-knob scroll-knob-left" aria-hidden="true"></div>
+            <div class="scroll-banner">
+              <span id="heroLunarText">Ngày 11 tháng 10 năm Bính Ngọ</span>
+            </div>
+            <div class="scroll-knob scroll-knob-right" aria-hidden="true"></div>
+          </div>
+
+          <!-- 2 thẻ pill: Hoàng Đạo/Hắc Đạo & Tiết khí -->
+          <div class="hero-pills">
+            <span id="pillHoangDao" class="info-pill pill-hoang-dao">Hoàng đạo · Thanh Long</span>
+            <span id="pillTietKhi" class="info-pill pill-tiet-khi">Tiết Lập đông</span>
+            <span id="pillHoliday" class="info-pill pill-holiday hidden"></span>
+          </div>
+
+          <button id="btnJumpDetails" class="btn-detail-trigger" type="button">
+            <span>Xem Giờ Hoàng Đạo &amp; Phong Thủy Ngày</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+        </section>
+
+        <!-- Bảng Lịch Tháng (Monthly Calendar Grid) -->
+        <section class="calendar-section" aria-label="Bảng lịch tháng">
+          <!-- Vòng tròn mực tàu Enso trang trí sau lưới lịch -->
+          <svg class="enso-bg" viewBox="0 0 400 400" fill="none" aria-hidden="true">
+            <path d="M210 26 C318 28, 382 115, 376 218 C370 315, 286 382, 185 376 C84 370, 22 290, 26 190 C30 105, 92 40, 174 28"
+              stroke="#1C1917" stroke-opacity="0.22" stroke-width="14" stroke-linecap="round" />
+            <path d="M195 33 C298 34, 370 112, 368 208 C365 305, 286 368, 192 367"
+              stroke="#1C1917" stroke-opacity="0.10" stroke-width="22" stroke-linecap="round" />
+          </svg>
+
+          <div class="calendar-header">
+            <button id="btnPrevMonth" class="month-nav-btn" type="button" aria-label="Tháng trước">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <h2 id="calendarMonthTitle" class="calendar-month-title">Tháng 11 - 2026</h2>
+            <button id="btnNextMonth" class="month-nav-btn" type="button" aria-label="Tháng sau">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="calendar-weekdays" role="row">
+            <span>T2</span>
+            <span>T3</span>
+            <span>T4</span>
+            <span>T5</span>
+            <span>T6</span>
+            <span>T7</span>
+            <span class="sun-col">CN</span>
+          </div>
+
+          <div id="calendarGrid" class="calendar-grid" role="grid" aria-label="Các ngày trong tháng"></div>
+
+          <!-- Chú thích ngày tốt / xung tuổi -->
+          <div class="calendar-legend" id="calendarLegend">
+            <div class="legend-item">
+              <span class="legend-sample legend-bad">Số đỏ nháy</span>
+              <span id="legendBadText">rất xấu / xung tuổi</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-sample legend-good">Số xanh</span>
+              <span id="legendGoodText">ngày tốt / Hoàng đạo</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Danh ngôn & Ca dao Việt Nam -->
+        <section class="quote-section" aria-label="Ca dao và danh ngôn Việt Nam">
+          <blockquote id="dailyQuoteText" class="daily-quote-text"></blockquote>
+          <cite id="dailyQuoteAuthor" class="daily-quote-author"></cite>
+        </section>
+      </div>
+
+      <!-- Cột phải / Phần Chi tiết Ngày, 12 Giờ Hoàng Đạo & Phong Thủy -->
+      <section id="dayDetailSection" class="detail-column" aria-label="Chi tiết giờ đẹp và phong thủy ngày">
+        <div class="detail-card">
+          <div class="detail-card-head">
+            <div>
+              <span class="detail-kicker">Chi tiết ngày âm dương</span>
+              <h2 id="detailTitle" class="detail-title">Thứ Năm, 19/11/2026</h2>
+              <p id="detailSubtitle" class="detail-subtitle">Ngày 11 tháng 10 năm Bính Ngọ</p>
+            </div>
+            <div id="detailRatingBadge" class="rating-badge">Hắc đạo</div>
+          </div>
+
+          <!-- Đánh giá riêng cho tuổi gia chủ -->
+          <div id="userAgeBanner" class="user-age-banner"></div>
+
+          <!-- Bảng 12 Canh Giờ Hoàng Đạo / Hắc Đạo -->
+          <div class="detail-block">
+            <div class="block-header">
+              <h3>12 Canh Giờ Trong Ngày</h3>
+              <div class="hours-legend">
+                <span class="dot-good">Hoàng đạo</span>
+                <span class="dot-bad">Hắc đạo</span>
+              </div>
+            </div>
+            <div id="hoursGrid" class="hours-grid"></div>
+          </div>
+
+          <!-- Thông tin Can Chi & Phong thủy cơ bản -->
+          <div class="detail-block">
+            <h3>Thông Tin Phong Thủy &amp; Can Chi</h3>
+            <div class="fengshui-grid">
+              <div class="fs-item">
+                <span class="fs-label">Can Chi Ngày</span>
+                <strong id="fsDayCanChi">--</strong>
+              </div>
+              <div class="fs-item">
+                <span class="fs-label">Can Chi Tháng / Năm</span>
+                <strong id="fsMonthYearCanChi">--</strong>
+              </div>
+              <div class="fs-item">
+                <span class="fs-label">Giờ Đầu Ngày</span>
+                <strong id="fsFirstHour">--</strong>
+              </div>
+              <div class="fs-item">
+                <span class="fs-label">Ngũ Hành Nạp Âm</span>
+                <strong id="fsNapAm">--</strong>
+              </div>
+              <div class="fs-item">
+                <span class="fs-label">Trực &amp; Sao Ngày</span>
+                <strong id="fsTrucSao">--</strong>
+              </div>
+              <div class="fs-item">
+                <span class="fs-label">Hướng Xuất Hành</span>
+                <strong id="fsHuong">--</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tuổi hợp / Tuổi xung & Việc nên làm / Kiêng kỵ -->
+          <div class="detail-block advice-grid">
+            <div class="advice-box advice-good">
+              <h4>✦ Việc Nên Làm</h4>
+              <ul id="listViecNen"></ul>
+              <p class="tuoi-note"><strong>Tuổi hợp:</strong> <span id="fsHopTuoi">--</span></p>
+            </div>
+            <div class="advice-box advice-bad">
+              <h4>✕ Việc Kiêng Kỵ</h4>
+              <ul id="listViecKy"></ul>
+              <p class="tuoi-note"><strong>Tuổi xung:</strong> <span id="fsXungTuoi">--</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Thanh điều hướng dưới cùng giống app di động cao cấp -->
+    <nav class="bottom-nav" aria-label="Điều hướng nhanh">
+      <button class="bnav-item active" data-target="top" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span>Lịch</span>
+      </button>
+      <button class="bnav-item" data-target="hours" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>Giờ đẹp</span>
+      </button>
+      <button class="bnav-item" data-target="weather" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+        </svg>
+        <span>Thời tiết</span>
+      </button>
+      <button class="bnav-item" data-target="converter" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+        </svg>
+        <span>Đổi ngày</span>
+      </button>
+      <button class="bnav-item" data-target="settings" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>Tuổi</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Modal Thời Tiết Chi Tiết & Chọn Tỉnh Thành -->
+  <div id="weatherModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="weatherModalTitle">
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h3 id="weatherModalTitle">Thời Tiết Thực Tế &amp; Dự Báo</h3>
+        <button class="modal-close" data-close="weatherModal" type="button" aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="weather-detail-card" id="weatherModalSummary"></div>
+
+        <div class="forecast-list" id="weatherForecastList"></div>
+
+        <div class="city-picker-block">
+          <div class="city-picker-header">
+            <label for="citySearchInput">Chọn Tỉnh/Thành Việt Nam hoặc Tìm kiếm</label>
+            <button id="btnModalGps" class="btn-gps-inline" type="button">📍 Dùng GPS hiện tại</button>
+          </div>
+          <input id="citySearchInput" type="search" class="text-input" placeholder="Nhập tên tỉnh/thành (vd: Hà Nội, Đà Lạt, Phú Quốc)..." autocomplete="off" />
+          <div id="cityList" class="city-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Cài Đặt Năm Sinh Gia Chủ -->
+  <div id="birthYearModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="birthYearModalTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="modal-head">
+        <h3 id="birthYearModalTitle">Tuổi Gia Chủ (Xem Ngày Hợp / Xung)</h3>
+        <button class="modal-close" data-close="birthYearModal" type="button" aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Nhập hoặc chọn năm sinh Dương lịch của bạn để lịch tự động đánh dấu ngày hợp tuổi (<strong class="txt-green">xanh ngọc</strong>) và ngày xung tuổi (<strong class="txt-red">đỏ nháy</strong>).</p>
+        <div class="birth-input-row">
+          <input id="birthYearInput" type="number" min="1900" max="2100" class="text-input" placeholder="Ví dụ: 1987" />
+          <button id="btnSaveBirthYear" class="btn-primary" type="button">Áp dụng</button>
+        </div>
+        <div id="birthYearPreview" class="birth-preview"></div>
+        <div class="quick-years">
+          <span class="quick-label">Chọn nhanh phổ biến:</span>
+          <div id="quickYearsGrid" class="quick-years-grid"></div>
+        </div>
+        <button id="btnClearBirthYear" class="btn-ghost" type="button">Bỏ chọn tuổi (chỉ xem Hoàng Đạo / Hắc Đạo chung)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Đổi Ngày Âm - Dương (1900 - 2100) -->
+  <div id="converterModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="converterModalTitle">
+    <div class="modal-sheet modal-sheet-sm">
+      <div class="modal-head">
+        <h3 id="converterModalTitle">Đổi Ngày Âm ↔ Dương Lịch</h3>
+        <button class="modal-close" data-close="converterModal" type="button" aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="converter-tabs">
+          <button class="conv-tab active" data-mode="solar2lunar" type="button">Dương → Âm</button>
+          <button class="conv-tab" data-mode="lunar2solar" type="button">Âm → Dương</button>
+        </div>
+        <div class="converter-form">
+          <div class="conv-fields">
+            <div>
+              <label for="convDay">Ngày</label>
+              <input id="convDay" type="number" min="1" max="31" class="text-input" />
+            </div>
+            <div>
+              <label for="convMonth">Tháng</label>
+              <input id="convMonth" type="number" min="1" max="12" class="text-input" />
+            </div>
+            <div>
+              <label for="convYear">Năm (1900-2100)</label>
+              <input id="convYear" type="number" min="1900" max="2100" class="text-input" />
+            </div>
+          </div>
+          <label id="convLeapWrap" class="leap-checkbox hidden">
+            <input id="convLeap" type="checkbox" />
+            <span>Tháng nhuận</span>
+          </label>
+          <div class="conv-actions">
+            <button id="btnConvertDate" class="btn-primary" type="button">Tra cứu &amp; Xem trên lịch</button>
+          </div>
+          <div id="convResult" class="conv-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
